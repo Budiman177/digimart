@@ -3,75 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DigiMart v10 - Clean & Fast</title>
+    <title>DigiMart v11 - Pro System</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #27ae60; --dark: #2c3e50; --light: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding-bottom: 100px; color: var(--dark); overflow-x: hidden; }
-        
-        header { background: var(--primary); color: white; padding: 50px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        :root { --primary: #27ae60; --dark: #2c3e50; --light: #f4f7f6; --white: #ffffff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); margin: 0; padding-bottom: 100px; color: var(--dark); }
 
-        .search-area { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 20px; max-width: 600px; margin: -35px auto 20px; position: relative; z-index: 10; }
+        /* Header & Navigation */
+        header { background: var(--primary); color: white; padding: 40px 20px 60px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .search-area { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 0 20px; max-width: 600px; margin: -30px auto 20px; position: relative; z-index: 100; }
         .search-input-wrapper { position: relative; flex: 1; }
         .search-box { width: 100%; padding: 15px 50px 15px 20px; border-radius: 30px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); outline: none; font-size: 16px; box-sizing: border-box; }
-        
-        .btn-search-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: var(--primary); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .btn-main-scan { background: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: var(--primary); font-size: 1.3em; display: flex; align-items: center; justify-content: center; }
+        .btn-search-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: var(--primary); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .btn-main-scan { background: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: var(--primary); font-size: 1.3em; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-main-scan:active { transform: scale(0.9); }
 
-        #reader-container { max-width: 450px; margin: 10px auto; display: none; padding: 0 15px; }
-        #reader { width: 100%; border-radius: 25px; overflow: hidden; border: 4px solid var(--primary); background: #fff; }
+        /* Scanner Area */
+        #reader-container { max-width: 500px; margin: 10px auto; display: none; padding: 0 15px; position: relative; z-index: 101; }
+        #reader { width: 100%; border-radius: 25px; overflow: hidden; border: 5px solid var(--white); box-shadow: 0 10px 30px rgba(0,0,0,0.2); background: #000; }
 
+        /* Grid & Card */
         .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-        .stats { font-weight: bold; margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 10px; }
-
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        .card { background: white; border-radius: 25px; padding: 15px; text-align: center; position: relative; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .no-urut { position: absolute; top: 12px; left: 12px; background: var(--dark); color: white; width: 26px; height: 26px; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; z-index: 2; }
+        .stats { font-weight: bold; margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 12px; font-size: 1.1em; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
         
-        .product-img-container { background: #fff; border-radius: 20px; width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; }
+        .card { background: var(--white); border-radius: 30px; padding: 20px; text-align: center; position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03); transition: 0.3s; }
+        .no-urut { position: absolute; top: 15px; left: 15px; background: var(--dark); color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center; z-index: 2; font-weight: bold; }
+        
+        /* Foto Fix: Background Putih & No Crop */
+        .product-img-container { background: var(--white); border-radius: 20px; width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; }
         .product-img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        .price { color: var(--primary); font-weight: 800; font-size: 1.3em; margin: 5px 0; }
-        .barcode-box { background: #f9f9f9; padding: 10px; border-radius: 15px; margin-top: 10px; }
-        .barcode-text { font-family: monospace; font-size: 13px; color: #555; }
-        .barcode-visual { height: 20px; background: repeating-linear-gradient(90deg, #333 0px, #333 2px, transparent 2px, transparent 4px); margin-bottom: 5px; opacity: 0.5; }
+        .card h3 { margin: 10px 0 5px; font-size: 1.2em; color: var(--dark); }
+        .price { color: var(--primary); font-weight: 800; font-size: 1.4em; margin: 5px 0; }
+        
+        /* Barcode Baru: Kompak & Menarik */
+        .barcode-wrapper { margin: 15px auto 10px; width: 85%; background: #fcfcfc; padding: 10px; border-radius: 15px; border: 1px solid #f0f0f0; }
+        .barcode-visual { height: 35px; background: repeating-linear-gradient(90deg, #444 0px, #444 2px, transparent 2px, transparent 4px); margin-bottom: 6px; width: 100%; }
+        .barcode-text { font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #777; font-weight: bold; }
 
-        /* MODAL & CUSTOM FILE INPUT */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-content { background: white; padding: 30px; border-radius: 35px; width: 90%; max-width: 420px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; }
+        .btn-delete { background: none; border: none; color: #eb4d4b; cursor: pointer; font-size: 13px; margin-top: 15px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; opacity: 0.8; }
+        .btn-delete:hover { opacity: 1; }
+
+        /* Modal & Form */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: white; padding: 30px; border-radius: 35px; width: 90%; max-width: 420px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
         
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #666; }
-        .form-group input { width: 100%; padding: 14px; border: 2px solid #f0f0f0; border-radius: 15px; box-sizing: border-box; font-size: 15px; }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #555; }
+        .form-group input { width: 100%; padding: 14px; border: 2px solid #f1f1f1; border-radius: 15px; box-sizing: border-box; font-size: 15px; outline: none; transition: 0.2s; }
+        .form-group input:focus { border-color: var(--primary); background: #fff; }
         
-        /* Fix Pilih File agar tidak terpotong */
-        .custom-file-upload { display: block; width: 100%; padding: 12px; background: #fafafa; border: 2px dashed #ddd; border-radius: 15px; text-align: center; cursor: pointer; color: #888; transition: 0.3s; box-sizing: border-box; }
-        .custom-file-upload:hover { border-color: var(--primary); color: var(--primary); }
+        .custom-file-upload { display: block; width: 100%; padding: 15px; background: #f9f9f9; border: 2px dashed #dcdde1; border-radius: 15px; text-align: center; cursor: pointer; color: #7f8c8d; box-sizing: border-box; transition: 0.3s; }
+        .custom-file-upload:hover { border-color: var(--primary); color: var(--primary); background: #f4fcf7; }
         #pImageFile { display: none; }
 
-        .btn-save { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 10px 25px rgba(39, 174, 96, 0.4); z-index: 99; }
+        .btn-save { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; box-shadow: 0 8px 20px rgba(39,174,96,0.3); }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(39,174,96,0.4); }
+
+        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 10px 25px rgba(39,174,96,0.4); z-index: 99; transition: 0.3s; }
+        .fab:hover { transform: scale(1.1) rotate(90deg); }
     </style>
 </head>
 <body>
 
 <header>
-    <h1 style="margin:10px 0 5px;">DigiMart</h1>
-    <p style="margin:0; opacity:0.8;">Daftar harga sembako DigiMart</p>
+    <h1 style="margin:0; font-size: 2.2em; letter-spacing: 1px;">DigiMart</h1>
+    <p style="margin:5px 0 0; opacity:0.9; font-weight: 300;">Daftar harga sembako DigiMart</p>
 </header>
 
 <div class="search-area">
     <div class="search-input-wrapper">
-        <input type="text" class="search-box" id="search" placeholder="Scan barcode produk..." onkeyup="loadData()">
+        <input type="text" class="search-box" id="search" placeholder="Cari nama atau scan barcode..." onkeyup="loadData()">
         <button class="btn-search-icon" onclick="loadData()"><i class="fa-solid fa-magnifying-glass"></i></button>
     </div>
-    <button class="btn-main-scan" onclick="handleScanner('search')"><i class="fa-solid fa-camera"></i></button>
+    <button class="btn-main-scan" onclick="handleScanner('search')" id="btnMainScanner" title="Buka Kamera">
+        <i class="fa-solid fa-camera"></i>
+    </button>
 </div>
 
 <div id="reader-container">
     <div id="reader"></div>
-    <button onclick="stopScanner()" style="width:100%; background:#ff7675; border:none; color:white; padding:12px; margin-top:10px; border-radius:15px; cursor:pointer; font-weight:bold;">Tutup Kamera</button>
+    <button onclick="stopScanner()" style="width:100%; background:#2c3e50; border:none; color:white; padding:15px; margin-top:15px; border-radius:18px; cursor:pointer; font-weight:bold; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">TUTUP KAMERA</button>
 </div>
 
 <div class="container">
@@ -81,21 +95,22 @@
 
 <div class="fab" onclick="toggleModal()"><i class="fa-solid fa-plus"></i></div>
 
+<!-- Modal Tambah -->
 <div class="modal" id="modalTambah">
     <div class="modal-content">
-        <h2 style="text-align:center; margin-top:0;">➕ Tambah Produk</h2>
+        <h2 style="text-align:center; margin:0 0 25px; color: var(--dark);">Tambah Produk</h2>
         
         <div class="form-group">
-            <label>Scan / Input Barcode</label>
+            <label>Barcode Produk</label>
             <div style="display:flex; gap:10px;">
-                <input type="text" id="pBarcode" placeholder="Kode barcode">
-                <button onclick="handleScanner('pBarcode')" style="background:var(--dark); color:white; border:none; width:50px; border-radius:15px; cursor:pointer;"><i class="fa-solid fa-barcode"></i></button>
+                <input type="text" id="pBarcode" placeholder="Scan atau ketik kode">
+                <button onclick="handleScanner('pBarcode')" style="background:var(--dark); color:white; border:none; width:55px; border-radius:15px; cursor:pointer;"><i class="fa-solid fa-barcode"></i></button>
             </div>
         </div>
 
         <div class="form-group">
             <label>Nama Produk</label>
-            <input type="text" id="pName" placeholder="Contoh: Nabati Keju">
+            <input type="text" id="pName" placeholder="Contoh: Kopi Kapal Api">
         </div>
 
         <div class="form-group">
@@ -106,69 +121,86 @@
         <div class="form-group">
             <label>Foto Produk</label>
             <label for="pImageFile" class="custom-file-upload" id="file-label">
-                <i class="fa-solid fa-cloud-arrow-up"></i> <span id="file-name">Pilih Foto Produk</span>
+                <i class="fa-solid fa-image" style="margin-right:8px;"></i> <span id="file-name">Ambil/Pilih Foto</span>
             </label>
             <input type="file" id="pImageFile" accept="image/*" onchange="updateFileName()">
         </div>
 
         <button class="btn-save" onclick="processUpload()">Simpan Produk</button>
-        <button style="width:100%; background:none; border:none; color:gray; margin-top:15px; cursor:pointer;" onclick="toggleModal()">Batal</button>
+        <button style="width:100%; background:none; border:none; color:#95a5a6; margin-top:15px; cursor:pointer; font-weight:600;" onclick="toggleModal()">BATAL</button>
     </div>
 </div>
 
 <script>
-    let products = JSON.parse(localStorage.getItem('digimart_v10')) || [];
-    let html5QrCode;
+    let products = JSON.parse(localStorage.getItem('digimart_v11')) || [];
+    let html5QrCode = null;
 
     function updateFileName() {
         const input = document.getElementById('pImageFile');
         const label = document.getElementById('file-name');
-        label.innerText = input.files[0] ? input.files[0].name : "Pilih Foto Produk";
+        label.innerText = input.files[0] ? input.files[0].name : "Ambil/Pilih Foto";
     }
 
     function toggleModal() {
         const modal = document.getElementById('modalTambah');
-        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        const isShowing = modal.style.display === 'flex';
+        modal.style.display = isShowing ? 'none' : 'flex';
         if (html5QrCode) stopScanner();
     }
 
-    // SCANNER OPTIMIZED (FAST START)
+    // SCANNER FIX (Bisa diklik berkali-kali)
     async function handleScanner(targetId) {
         const container = document.getElementById('reader-container');
-        container.style.display = 'block';
-        container.scrollIntoView({ behavior: 'smooth' });
+        
+        // Jika scanner sedang aktif, matikan dulu sebelum buka yang baru
+        if (html5QrCode && html5QrCode.isScanning) {
+            await stopScanner();
+        }
 
-        if (html5QrCode) await stopScanner();
+        container.style.display = 'block';
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         html5QrCode = new Html5Qrcode("reader");
-        const config = { fps: 25, qrbox: { width: 280, height: 160 } };
+        const config = { fps: 20, qrbox: { width: 280, height: 150 } };
 
-        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-            document.getElementById(targetId).value = decodedText;
-            if (navigator.vibrate) navigator.vibrate(100);
-            stopScanner();
-            if(targetId === 'search') loadData();
-        }).catch(() => alert("Kamera Error: Gunakan HTTPS"));
+        try {
+            await html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                document.getElementById(targetId).value = decodedText;
+                if (navigator.vibrate) navigator.vibrate(100);
+                stopScanner();
+                if(targetId === 'search') loadData();
+            });
+        } catch (err) {
+            alert("Gagal membuka kamera. Pastikan koneksi HTTPS dan izin kamera aktif.");
+            container.style.display = 'none';
+        }
     }
 
     async function stopScanner() {
         if (html5QrCode) {
             try {
-                await html5QrCode.stop();
+                if (html5QrCode.isScanning) {
+                    await html5QrCode.stop();
+                }
+            } catch (err) {
+                console.error("Error stopping scanner", err);
+            } finally {
                 html5QrCode = null;
-            } catch (e) {}
+                document.getElementById('reader-container').style.display = 'none';
+                // Hapus elemen internal library untuk reset total
+                document.getElementById('reader').innerHTML = "";
+            }
         }
-        document.getElementById('reader-container').style.display = 'none';
     }
 
-    // LOGIKA PUTIHKAN BACKGROUND & UPLOAD
+    // UPLOAD FIX (Canvas No Background Replace)
     function processUpload() {
         const barcode = document.getElementById('pBarcode').value;
         const name = document.getElementById('pName').value;
         const price = document.getElementById('pPrice').value;
         const file = document.getElementById('pImageFile').files[0];
 
-        if (!name || !price) return alert("Isi Nama & Harga!");
+        if (!name || !price) return alert("Nama & Harga harus diisi!");
 
         if (file) {
             const reader = new FileReader();
@@ -177,51 +209,54 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    canvas.width = 400; canvas.height = 400;
+                    // Standar size 500x500 untuk kualitas bagus
+                    canvas.width = 500; canvas.height = 500;
                     
-                    // Isi background canvas dengan putih dulu
+                    // Background Putih Bersih
                     ctx.fillStyle = "#ffffff";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // Gambar foto di tengah
+                    // Ratio Centering (Kelihatan semua, tidak terpotong)
                     const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
-                    const nw = img.width * ratio; const nh = img.height * ratio;
-                    const x = (canvas.width - nw) / 2; const y = (canvas.height - nh) / 2;
+                    const nw = img.width * ratio; 
+                    const nh = img.height * ratio;
+                    const x = (canvas.width - nw) / 2;
+                    const y = (canvas.height - nh) / 2;
                     
                     ctx.drawImage(img, x, y, nw, nh);
-
-                    // LOGIKA HAPUS HITAM: Ganti pixel gelap menjadi putih
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const data = imageData.data;
-                    for (let i = 0; i < data.length; i += 4) {
-                        // Jika pixel mendekati hitam (R,G,B rendah)
-                        if (data[i] < 40 && data[i+1] < 40 && data[i+2] < 40) {
-                            data[i] = 255; data[i+1] = 255; data[i+2] = 255;
-                        }
-                    }
-                    ctx.putImageData(imageData, 0, 0);
-                    
-                    saveData(barcode, name, price, canvas.toDataURL('image/jpeg', 0.8));
+                    saveData(barcode, name, price, canvas.toDataURL('image/jpeg', 0.85));
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         } else {
-            saveData(barcode, name, price, "https://via.placeholder.com/300x300?text=No+Photo");
+            saveData(barcode, name, price, "https://via.placeholder.com/500/ffffff/2c3e50?text=No+Photo");
         }
     }
 
     function saveData(barcode, name, price, img) {
         products.push({ id: Date.now(), barcode, name, price, img });
-        localStorage.setItem('digimart_v10', JSON.stringify(products));
-        toggleModal(); loadData();
+        localStorage.setItem('digimart_v11', JSON.stringify(products));
+        toggleModal();
+        loadData();
+        // Reset inputs
+        document.getElementById('pBarcode').value = '';
+        document.getElementById('pName').value = '';
+        document.getElementById('pPrice').value = '';
+        document.getElementById('pImageFile').value = '';
+        document.getElementById('file-name').innerText = "Ambil/Pilih Foto";
     }
 
     function loadData() {
         const grid = document.getElementById('grid');
         const search = document.getElementById('search').value.toLowerCase();
         grid.innerHTML = '';
-        const filtered = products.filter(p => p.name.toLowerCase().includes(search) || (p.barcode && p.barcode.includes(search)));
+        
+        const filtered = products.filter(p => 
+            p.name.toLowerCase().includes(search) || 
+            (p.barcode && p.barcode.includes(search))
+        );
+        
         document.getElementById('count').innerText = `${filtered.length} Jenis Jajanan`;
 
         filtered.forEach((p, index) => {
@@ -229,23 +264,29 @@
             card.className = 'card';
             card.innerHTML = `
                 <div class="no-urut">${index + 1}</div>
-                <div class="product-img-container"><img src="${p.img}" class="product-img"></div>
-                <h3 style="margin:5px 0;">${p.name}</h3>
-                <div class="price">Rp ${new Intl.NumberFormat('id-ID').format(p.price)}</div>
-                <div class="barcode-box">
-                    <div class="barcode-visual"></div>
-                    <div class="barcode-text">${p.barcode || '---'}</div>
+                <div class="product-img-container">
+                    <img src="${p.img}" class="product-img">
                 </div>
-                <button onclick="deleteItem(${p.id})" style="border:none; background:none; color:#ff7675; cursor:pointer; margin-top:10px; font-size:12px;"><i class="fa-solid fa-trash"></i> Hapus</button>
+                <h3>${p.name}</h3>
+                <div class="price">Rp ${new Intl.NumberFormat('id-ID').format(p.price)}</div>
+                
+                <div class="barcode-wrapper">
+                    <div class="barcode-visual"></div>
+                    <div class="barcode-text">${p.barcode || '-----------'}</div>
+                </div>
+
+                <button class="btn-delete" onclick="deleteItem(${p.id})">
+                    <i class="fa-solid fa-trash-can"></i> Hapus
+                </button>
             `;
             grid.appendChild(card);
         });
     }
 
     function deleteItem(id) {
-        if(confirm('Hapus produk?')) {
+        if(confirm('Hapus produk ini?')) {
             products = products.filter(p => p.id !== id);
-            localStorage.setItem('digimart_v10', JSON.stringify(products));
+            localStorage.setItem('digimart_v11', JSON.stringify(products));
             loadData();
         }
     }
