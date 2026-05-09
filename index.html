@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DigiMart v7 - Full View Image</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>DigiMart v8 - Barcode System</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -19,7 +18,6 @@
         .btn-search-icon { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: var(--primary); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-scan { background: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: var(--primary); font-size: 1.2em; display: flex; align-items: center; justify-content: center; }
 
-        /* PERBAIKAN SCANNER: Memastikan kontainer terlihat rapi */
         #reader { width: 100%; max-width: 450px; margin: 10px auto; border-radius: 20px; overflow: hidden; display: none; border: 4px solid var(--primary); background: black; }
 
         .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
@@ -29,20 +27,23 @@
         .card { background: white; border-radius: 25px; padding: 15px; text-align: center; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
         .no-urut { position: absolute; top: 10px; left: 10px; background: var(--dark); color: white; width: 25px; height: 25px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; z-index: 1; }
         
-        /* PERBAIKAN FOTO: Menggunakan object-fit contain supaya foto tidak terpotong */
-        .product-img-container { background: #eee; border-radius: 20px; width: 100%; height: 150px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        /* FIX: Container Putih & Foto Full */
+        .product-img-container { background: white; border-radius: 20px; width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; }
         .product-img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        .price { color: var(--primary); font-weight: 800; font-size: 1.2em; margin: 10px 0; }
-        .qr-box { display: flex; justify-content: center; padding: 10px; background: #f9f9f9; border-radius: 15px; margin-top: 10px; }
+        .barcode-label { font-size: 11px; color: #7f8c8d; background: #eee; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 5px; }
+        .price { color: var(--primary); font-weight: 800; font-size: 1.3em; margin: 5px 0; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 400px; box-sizing: border-box; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); overflow-y: auto; }
+        .modal-content { background: white; padding: 25px; border-radius: 30px; width: 90%; max-width: 400px; box-sizing: border-box; margin: 20px; }
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
         .form-group input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; }
         
-        .btn-submit { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .input-with-btn { display: flex; gap: 8px; }
+        .btn-inline-scan { background: var(--dark); color: white; border: none; padding: 0 15px; border-radius: 12px; cursor: pointer; }
+
+        .btn-submit { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .fab { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 10px 25px rgba(39, 174, 96, 0.4); z-index: 99; }
     </style>
 </head>
@@ -50,53 +51,67 @@
 
 <header>
     <h1>DigiMart</h1>
-    <p>Daftar harga praktis & modern</p>
+    <p>Daftar Harga Sembako DigiMart</p>
 </header>
 
 <div class="search-area">
     <div class="search-input-wrapper">
-        <input type="text" class="search-box" id="search" placeholder="Cari nama produk..." onkeyup="loadData()">
+        <input type="text" class="search-box" id="search" placeholder="Scan barcode atau cari nama..." onkeyup="loadData()">
         <button class="btn-search-icon" onclick="loadData()"><i class="fa-solid fa-magnifying-glass"></i></button>
     </div>
-    <button class="btn-scan" onclick="startScanner()" title="Scan QR Produk"><i class="fa-solid fa-camera"></i></button>
+    <button class="btn-scan" onclick="startScanner('search')" title="Scan Produk"><i class="fa-solid fa-barcode"></i></button>
 </div>
 
 <div id="reader"></div>
 
 <div class="container">
-    <div class="stats" id="count">0 Jenis Jajanan</div>
+    <div class="stats" id="count">0 Produk</div>
     <div class="product-grid" id="grid"></div>
 </div>
 
 <div class="fab" onclick="toggleModal()"><i class="fa-solid fa-plus"></i></div>
 
+<!-- Modal Tambah Produk -->
 <div class="modal" id="modalTambah">
     <div class="modal-content">
-        <h2 style="text-align: center; margin-bottom: 20px;">➕ Produk Baru</h2>
+        <h2 style="text-align: center; margin-top:0;">➕ Tambah Produk</h2>
+        
+        <div class="form-group">
+            <label>Scan / Input Barcode</label>
+            <div class="input-with-btn">
+                <input type="text" id="pBarcode" placeholder="Kode barcode produk">
+                <button class="btn-inline-scan" onclick="startScanner('pBarcode')"><i class="fa-solid fa-camera"></i></button>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>Nama Produk</label>
-            <input type="text" id="pName" placeholder="Contoh: Kopi Kapal Api">
+            <input type="text" id="pName" placeholder="Contoh: Nabati Keju">
         </div>
+
         <div class="form-group">
-            <label>Harga (Cukup Angka)</label>
+            <label>Harga (Rp)</label>
             <input type="number" id="pPrice" placeholder="Contoh: 2500">
         </div>
+
         <div class="form-group">
             <label>Foto Produk</label>
             <input type="file" id="pImageFile" accept="image/*">
         </div>
-        <button class="btn-submit" onclick="handleImageUpload()">Simpan ke DigiMart</button>
-        <button style="width:100%; background:none; border:none; color:gray; margin-top:15px; cursor:pointer;" onclick="toggleModal()">Batal</button>
+
+        <button class="btn-submit" onclick="handleImageUpload()">Simpan Produk</button>
+        <button style="width:100%; background:none; border:none; color:gray; margin-top:10px; cursor:pointer;" onclick="toggleModal()">Batal</button>
     </div>
 </div>
 
 <script>
-    let products = JSON.parse(localStorage.getItem('digimart_v7')) || [];
+    let products = JSON.parse(localStorage.getItem('digimart_v8')) || [];
     let html5QrCode;
 
     function toggleModal() {
         const modal = document.getElementById('modalTambah');
         modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        if(html5QrCode) stopScanner();
     }
 
     function formatRupiah(angka) {
@@ -104,6 +119,7 @@
     }
 
     function handleImageUpload() {
+        const barcode = document.getElementById('pBarcode').value;
         const name = document.getElementById('pName').value;
         const price = document.getElementById('pPrice').value;
         const file = document.getElementById('pImageFile').files[0];
@@ -120,32 +136,26 @@
                     const MAX_WIDTH = 400;
                     let width = img.width;
                     let height = img.height;
-
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
-                    const base64Img = canvas.toDataURL('image/jpeg', 0.8); 
-                    saveProduct(name, price, base64Img);
+                    saveProduct(barcode, name, price, canvas.toDataURL('image/jpeg', 0.8));
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         } else {
-            saveProduct(name, price, "https://via.placeholder.com/200?text=Tanpa+Foto");
+            saveProduct(barcode, name, price, "https://via.placeholder.com/200?text=Tanpa+Foto");
         }
     }
 
-    function saveProduct(name, price, imgData) {
-        products.push({ id: "DM-" + Date.now(), name, price: parseInt(price), img: imgData });
-        localStorage.setItem('digimart_v7', JSON.stringify(products));
+    function saveProduct(barcode, name, price, imgData) {
+        products.push({ id: Date.now(), barcode, name, price: parseInt(price), img: imgData });
+        localStorage.setItem('digimart_v8', JSON.stringify(products));
         toggleModal();
         loadData();
-        // Clear inputs
+        // Reset form
+        document.getElementById('pBarcode').value = '';
         document.getElementById('pName').value = '';
         document.getElementById('pPrice').value = '';
         document.getElementById('pImageFile').value = '';
@@ -156,8 +166,13 @@
         const search = document.getElementById('search').value.toLowerCase();
         grid.innerHTML = '';
         
-        const filtered = products.filter(p => p.name.toLowerCase().includes(search));
-        document.getElementById('count').innerText = `${filtered.length} Jenis Jajanan`;
+        // Filter berdasarkan Nama ATAU Barcode
+        const filtered = products.filter(p => 
+            p.name.toLowerCase().includes(search) || 
+            (p.barcode && p.barcode.includes(search))
+        );
+        
+        document.getElementById('count').innerText = `${filtered.length} Produk`;
 
         filtered.forEach((p, index) => {
             const card = document.createElement('div');
@@ -167,42 +182,40 @@
                 <div class="product-img-container">
                     <img src="${p.img}" class="product-img">
                 </div>
-                <h3 style="margin:15px 0 5px 0; font-size:1.1em;">${p.name}</h3>
+                <h3 style="margin:5px 0; font-size:1.1em;">${p.name}</h3>
                 <div class="price">Rp ${formatRupiah(p.price)}</div>
-                <div class="qr-box" id="qr-${p.id}"></div>
-                <button onclick="deleteProduct('${p.id}')" style="background:none; border:none; color:#ff7675; cursor:pointer; font-size:12px; margin-top:10px;"><i class="fa-solid fa-trash"></i> Hapus</button>
+                ${p.barcode ? `<div class="barcode-label"><i class="fa-solid fa-barcode"></i> ${p.barcode}</div>` : ''}
+                <div style="margin-top:15px;">
+                    <button onclick="deleteProduct(${p.id})" style="background:none; border:none; color:#ff7675; cursor:pointer; font-size:12px;"><i class="fa-solid fa-trash"></i> Hapus</button>
+                </div>
             `;
             grid.appendChild(card);
-            new QRCode(document.getElementById(`qr-${p.id}`), { text: p.name, width: 80, height: 80 });
         });
     }
 
     function deleteProduct(id) {
         if(confirm('Hapus produk ini?')) {
             products = products.filter(p => p.id !== id);
-            localStorage.setItem('digimart_v7', JSON.stringify(products));
+            localStorage.setItem('digimart_v8', JSON.stringify(products));
             loadData();
         }
     }
 
-    // PERBAIKAN SCANNER: Logika pemanggilan kamera yang lebih stabil
-    function startScanner() {
+    // SCANNER MULTIFUNGSI
+    function startScanner(targetInputId) {
         const readerDiv = document.getElementById('reader');
-        
-        if (readerDiv.style.display === 'block') {
-            stopScanner();
-            return;
-        }
-
         readerDiv.style.display = 'block';
         
+        // Scroll ke scanner agar kelihatan
+        readerDiv.scrollIntoView({ behavior: 'smooth' });
+
         if (!html5QrCode) {
             html5QrCode = new Html5Qrcode("reader");
         }
         
         const config = { 
-            fps: 15, 
-            qrbox: { width: 250, height: 250 },
+            fps: 20, 
+            qrbox: { width: 280, height: 150 }, // Kotak memanjang untuk Barcode
             aspectRatio: 1.0 
         };
 
@@ -210,14 +223,16 @@
             { facingMode: "environment" }, 
             config,
             (decodedText) => {
-                document.getElementById('search').value = decodedText;
+                document.getElementById(targetInputId).value = decodedText;
                 loadData();
                 if (navigator.vibrate) navigator.vibrate(100);
                 stopScanner();
+                if(targetInputId === 'search') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
             }
         ).catch(err => {
-            console.error(err);
-            alert("Kamera gagal diakses. Pastikan izin kamera aktif dan gunakan HTTPS.");
+            alert("Kamera Error: Gunakan HTTPS");
             readerDiv.style.display = 'none';
         });
     }
@@ -226,7 +241,7 @@
         if (html5QrCode && html5QrCode.isScanning) {
             html5QrCode.stop().then(() => {
                 document.getElementById('reader').style.display = 'none';
-            }).catch(err => console.error(err));
+            });
         } else {
             document.getElementById('reader').style.display = 'none';
         }
