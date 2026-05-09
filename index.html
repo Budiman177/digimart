@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DigiMart Pro</title>
+    <title>DigiMart v6 - Smart Catalog</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -44,7 +44,7 @@
 <body>
 
 <header>
-    <h1>DigiMart</h1>
+    <h1>🏪 DigiMart</h1>
     <p>Daftar harga praktis & modern</p>
 </header>
 
@@ -70,23 +70,23 @@
         <h2 style="text-align: center; margin-bottom: 20px;">➕ Produk Baru</h2>
         <div class="form-group">
             <label>Nama Produk</label>
-            <input type="text" id="pName" placeholder="Contoh: Nabati Recheese">
+            <input type="text" id="pName" placeholder="Contoh: Kopi Kapal Api">
         </div>
         <div class="form-group">
             <label>Harga (Tanpa Titik)</label>
-            <input type="number" id="pPrice" placeholder="Contoh: 2000">
+            <input type="number" id="pPrice" placeholder="Contoh: 2500">
         </div>
         <div class="form-group">
-            <label>Link Foto Produk</label>
-            <input type="text" id="pImgLink" placeholder="Tempel link foto di sini">
+            <label>Foto Produk</label>
+            <input type="file" id="pImageFile" accept="image/*">
         </div>
-        <button class="btn-submit" onclick="addProduct()">Simpan ke DigiMart</button>
+        <button class="btn-submit" onclick="handleImageUpload()">Simpan ke DigiMart</button>
         <button style="width:100%; background:none; border:none; color:gray; margin-top:15px; cursor:pointer;" onclick="toggleModal()">Batal</button>
     </div>
 </div>
 
 <script>
-    let products = JSON.parse(localStorage.getItem('digimart_v4')) || [];
+    let products = JSON.parse(localStorage.getItem('digimart_v6')) || [];
     let html5QrCode;
 
     function toggleModal() {
@@ -94,33 +94,48 @@
         modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
     }
 
-    // Fungsi format ribuan: 2000 jadi 2.000
-    function formatRibuan(x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    // Fungsi format harga menjadi ribuan (2500 -> 2.500)
+    function formatRupiah(angka) {
+        return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
-    function addProduct() {
+    function handleImageUpload() {
         const name = document.getElementById('pName').value;
         const price = document.getElementById('pPrice').value;
-        const img = document.getElementById('pImgLink').value;
+        const file = document.getElementById('pImageFile').files[0];
 
         if (!name || !price) return alert("Nama dan Harga wajib diisi!");
 
-        products.push({ 
-            id: "DM-" + Date.now(), 
-            name: name, 
-            price: parseInt(price), 
-            img: img || "https://via.placeholder.com/200?text=No+Image" 
-        });
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 300; 
+                    canvas.height = (img.height / img.width) * 300;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const base64Img = canvas.toDataURL('image/jpeg', 0.7); 
+                    saveProduct(name, price, base64Img);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            saveProduct(name, price, "https://via.placeholder.com/200?text=Tanpa+Foto");
+        }
+    }
 
-        localStorage.setItem('digimart_v4', JSON.stringify(products));
+    function saveProduct(name, price, imgData) {
+        products.push({ id: "DM-" + Date.now(), name, price: parseInt(price), img: imgData });
+        localStorage.setItem('digimart_v6', JSON.stringify(products));
         toggleModal();
         loadData();
-        
-        // Reset form
+        // Reset
         document.getElementById('pName').value = '';
         document.getElementById('pPrice').value = '';
-        document.getElementById('pImgLink').value = '';
+        document.getElementById('pImageFile').value = '';
     }
 
     function loadData() {
@@ -136,52 +151,60 @@
             card.className = 'card';
             card.innerHTML = `
                 <div class="no-urut">${index + 1}</div>
-                <img src="${p.img}" class="product-img" onerror="this.src='https://via.placeholder.com/200?text=Link+Eror'">
+                <img src="${p.img}" class="product-img">
                 <h3 style="margin:15px 0 5px 0; font-size:1.1em;">${p.name}</h3>
-                <div class="price">Rp ${formatRibuan(p.price)}</div>
+                <div class="price">Rp ${formatRupiah(p.price)}</div>
                 <div class="qr-box" id="qr-${p.id}"></div>
                 <button onclick="deleteProduct('${p.id}')" style="background:none; border:none; color:#ff7675; cursor:pointer; font-size:12px; margin-top:10px;"><i class="fa-solid fa-trash"></i> Hapus</button>
             `;
             grid.appendChild(card);
-
-            new QRCode(document.getElementById(`qr-${p.id}`), {
-                text: p.name,
-                width: 80, height: 80
-            });
+            new QRCode(document.getElementById(`qr-${p.id}`), { text: p.name, width: 80, height: 80 });
         });
     }
 
     function deleteProduct(id) {
         if(confirm('Hapus produk ini?')) {
             products = products.filter(p => p.id !== id);
-            localStorage.setItem('digimart_v4', JSON.stringify(products));
+            localStorage.setItem('digimart_v6', JSON.stringify(products));
             loadData();
         }
     }
 
-    // FUNGSI SCANNER PERBAIKAN
+    // FUNGSI SCANNER GABUNGAN
     function startScanner() {
         const readerDiv = document.getElementById('reader');
+        
         if (readerDiv.style.display === 'block') {
             stopScanner();
             return;
         }
-        
+
         readerDiv.style.display = 'block';
         html5QrCode = new Html5Qrcode("reader");
         
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        const config = { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0 
+        };
 
         html5QrCode.start(
             { facingMode: "environment" }, 
             config,
             (decodedText) => {
-                document.getElementById('search').value = decodedText;
-                loadData();
+                const searchInput = document.getElementById('search');
+                searchInput.value = decodedText;
+                
+                loadData(); // Cari otomatis
+                
+                if (navigator.vibrate) navigator.vibrate(100);
                 stopScanner();
+                
+                window.scrollTo({ top: searchInput.offsetTop - 20, behavior: 'smooth' });
             }
         ).catch(err => {
-            alert("Kamera tidak diizinkan atau tidak ditemukan.");
+            console.error(err);
+            alert("Gagal mengakses kamera. Gunakan link HTTPS (GitHub Pages).");
             readerDiv.style.display = 'none';
         });
     }
@@ -197,6 +220,5 @@
 
     loadData();
 </script>
-
 </body>
 </html>
