@@ -1,439 +1,202 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DigiMart - Katalog Pintar</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigiMart Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-      :root {
-        --primary: #27ae60;
-        --dark: #2c3e50;
-        --light: #f8f9fa;
-      }
+        :root { --primary: #27ae60; --dark: #2c3e50; --light: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding-bottom: 100px; }
+        header { background: var(--primary); color: white; padding: 40px 20px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        .search-area { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 20px; max-width: 600px; margin: -30px auto 20px; }
+        .search-input-wrapper { position: relative; flex: 1; }
+        .search-box { width: 100%; padding: 15px 50px 15px 20px; border-radius: 30px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); outline: none; font-size: 16px; box-sizing: border-box; }
+        
+        .btn-search-icon { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: var(--primary); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-scan { background: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: var(--primary); font-size: 1.2em; display: flex; align-items: center; justify-content: center; }
 
-      body {
-        font-family: "Segoe UI", sans-serif;
-        background: var(--light);
-        margin: 0;
-        padding-bottom: 100px;
-      }
+        #reader { width: 100%; max-width: 400px; margin: 10px auto; border-radius: 20px; overflow: hidden; display: none; border: 3px solid var(--primary); }
 
-      header {
-        background: var(--primary);
-        color: white;
-        padding: 40px 20px;
-        text-align: center;
-        border-bottom-left-radius: 40px;
-        border-bottom-right-radius: 40px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      }
-      header h1 {
-        margin: 0;
-        font-size: 2.5em;
-        letter-spacing: 2px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-      }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        .stats { font-weight: bold; margin-bottom: 20px; color: var(--dark); border-left: 5px solid var(--primary); padding-left: 10px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        
+        .card { background: white; border-radius: 25px; padding: 15px; text-align: center; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .no-urut { position: absolute; top: 10px; left: 10px; background: var(--dark); color: white; width: 25px; height: 25px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; z-index: 1; }
+        .product-img { width: 100%; height: 150px; object-fit: cover; border-radius: 20px; background: #eee; }
+        .price { color: var(--primary); font-weight: 800; font-size: 1.2em; margin: 10px 0; }
+        .qr-box { display: flex; justify-content: center; padding: 10px; background: #f9f9f9; border-radius: 15px; margin-top: 10px; }
 
-      .search-area {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 12px;
-        padding: 20px;
-        max-width: 600px;
-        margin: -30px auto 20px;
-      }
-
-      .search-input-wrapper {
-        position: relative;
-        flex: 1;
-      }
-
-      /* Ikon search dipindah ke kanan dan dijadikan tombol fungsional */
-      .btn-search-icon {
-        position: absolute;
-        right: 5px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: var(--primary);
-        color: white;
-        border: none;
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .btn-search-icon:hover {
-        background: var(--dark);
-      }
-
-      .search-box {
-        width: 100%;
-        padding: 15px 50px 15px 20px; /* Padding kanan ditambah untuk ruang tombol */
-        border-radius: 30px;
-        border: none;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        outline: none;
-        font-size: 16px;
-        box-sizing: border-box;
-      }
-
-      .btn-scan {
-        background: white;
-        border: none;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        color: var(--primary);
-        font-size: 1.2em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      #reader {
-        width: 100%;
-        max-width: 400px;
-        margin: 10px auto;
-        border-radius: 20px;
-        overflow: hidden;
-        display: none;
-        border: 3px solid var(--primary);
-      }
-
-      .container {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0 20px;
-      }
-      .stats {
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: var(--dark);
-        border-left: 5px solid var(--primary);
-        padding-left: 10px;
-      }
-      .product-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 20px;
-      }
-
-      .card {
-        background: white;
-        border-radius: 25px;
-        padding: 15px;
-        text-align: center;
-        position: relative;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-      }
-      .no-urut {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: var(--dark);
-        color: white;
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        font-size: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1;
-      }
-      .product-img {
-        width: 100%;
-        height: 150px;
-        object-fit: cover;
-        border-radius: 20px;
-        background: #eee;
-      }
-      .price {
-        color: var(--primary);
-        font-weight: 800;
-        font-size: 1.2em;
-        margin: 10px 0;
-      }
-      .qr-box {
-        display: flex;
-        justify-content: center;
-        padding: 10px;
-        background: #f9f9f9;
-        border-radius: 15px;
-        margin-top: 10px;
-      }
-
-      .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(5px);
-      }
-      .modal-content {
-        background: white;
-        padding: 30px;
-        border-radius: 30px;
-        width: 90%;
-        max-width: 400px;
-      }
-      .form-group {
-        margin-bottom: 15px;
-      }
-      .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-      }
-      .form-group input {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #eee;
-        border-radius: 12px;
-        box-sizing: border-box;
-      }
-
-      .btn-submit {
-        width: 100%;
-        padding: 15px;
-        background: var(--primary);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-      .fab {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        background: var(--primary);
-        color: white;
-        width: 65px;
-        height: 65px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 30px;
-        cursor: pointer;
-        box-shadow: 0 10px 25px rgba(39, 174, 96, 0.4);
-        z-index: 99;
-      }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 400px; box-sizing: border-box; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; }
+        
+        .btn-submit { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 10px 25px rgba(39, 174, 96, 0.4); z-index: 99; }
     </style>
-  </head>
-  <body>
-    <header>
-      <h1>🏪 DigiMart</h1>
-      <p>Daftar harga praktis & modern</p>
-    </header>
+</head>
+<body>
 
-    <div class="search-area">
-      <div class="search-input-wrapper">
-        <input
-          type="text"
-          class="search-box"
-          id="search"
-          placeholder="Cari nama produk..."
-          onkeyup="loadData()"
-        />
-        <!-- Tombol kaca pembesar sekarang di kanan dan berfungsi memicu pencarian -->
-        <button class="btn-search-icon" onclick="loadData()">
-          <i class="fa-solid fa-magnifying-glass"></i>
-        </button>
-      </div>
-      <button class="btn-scan" onclick="startScanner()" title="Scan QR Produk">
-        <i class="fa-solid fa-camera"></i>
-      </button>
+<header>
+    <h1>🏪 DigiMart</h1>
+    <p>Daftar harga praktis & modern</p>
+</header>
+
+<div class="search-area">
+    <div class="search-input-wrapper">
+        <input type="text" class="search-box" id="search" placeholder="Cari nama produk..." onkeyup="loadData()">
+        <button class="btn-search-icon" onclick="loadData()"><i class="fa-solid fa-magnifying-glass"></i></button>
     </div>
+    <button class="btn-scan" onclick="startScanner()" title="Scan QR Produk"><i class="fa-solid fa-camera"></i></button>
+</div>
 
-    <div id="reader"></div>
+<div id="reader"></div>
 
-    <div class="container">
-      <div class="stats" id="count">0 Jenis Jajanan</div>
-      <div class="product-grid" id="grid"></div>
-    </div>
+<div class="container">
+    <div class="stats" id="count">0 Jenis Jajanan</div>
+    <div class="product-grid" id="grid"></div>
+</div>
 
-    <div class="fab" onclick="toggleModal()">
-      <i class="fa-solid fa-plus"></i>
-    </div>
+<div class="fab" onclick="toggleModal()"><i class="fa-solid fa-plus"></i></div>
 
-    <div class="modal" id="modalTambah">
-      <div class="modal-content">
-        <h2 style="text-align: center; margin-bottom: 20px">➕ Produk Baru</h2>
+<div class="modal" id="modalTambah">
+    <div class="modal-content">
+        <h2 style="text-align: center; margin-bottom: 20px;">➕ Produk Baru</h2>
         <div class="form-group">
-          <label>Nama Produk</label>
-          <input type="text" id="pName" placeholder="Nama Produk" />
+            <label>Nama Produk</label>
+            <input type="text" id="pName" placeholder="Contoh: Nabati Recheese">
         </div>
         <div class="form-group">
-          <label>Harga (Rp)</label>
-          <input type="number" id="pPrice" placeholder="Contoh: 12000" />
+            <label>Harga (Tanpa Titik)</label>
+            <input type="number" id="pPrice" placeholder="Contoh: 2000">
         </div>
         <div class="form-group">
-          <label>Foto Produk</label>
-          <input type="file" id="pImgFile" accept="image/*" />
+            <label>Link Foto Produk</label>
+            <input type="text" id="pImgLink" placeholder="Tempel link foto di sini">
         </div>
-        <button class="btn-submit" onclick="addProduct()">
-          Simpan ke DigiMart
-        </button>
-        <button
-          style="
-            width: 100%;
-            background: none;
-            border: none;
-            color: gray;
-            margin-top: 15px;
-            cursor: pointer;
-          "
-          onclick="toggleModal()"
-        >
-          Batal
-        </button>
-      </div>
+        <button class="btn-submit" onclick="addProduct()">Simpan ke DigiMart</button>
+        <button style="width:100%; background:none; border:none; color:gray; margin-top:15px; cursor:pointer;" onclick="toggleModal()">Batal</button>
     </div>
+</div>
 
-    <script>
-      let products = JSON.parse(localStorage.getItem("digimart_db")) || [];
-      let html5QrCode;
+<script>
+    let products = JSON.parse(localStorage.getItem('digimart_v4')) || [];
+    let html5QrCode;
 
-      function toggleModal() {
-        const modal = document.getElementById("modalTambah");
-        modal.style.display = modal.style.display === "flex" ? "none" : "flex";
-      }
+    function toggleModal() {
+        const modal = document.getElementById('modalTambah');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    }
 
-      function addProduct() {
-        const name = document.getElementById("pName").value;
-        const price = document.getElementById("pPrice").value;
-        const file = document.getElementById("pImgFile").files[0];
+    // Fungsi format ribuan: 2000 jadi 2.000
+    function formatRibuan(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function addProduct() {
+        const name = document.getElementById('pName').value;
+        const price = document.getElementById('pPrice').value;
+        const img = document.getElementById('pImgLink').value;
 
         if (!name || !price) return alert("Nama dan Harga wajib diisi!");
 
-        if (file) {
-          const reader = new FileReader();
-          reader.onloadend = () => saveProduct(name, price, reader.result);
-          reader.readAsDataURL(file);
-        } else {
-          saveProduct(name, price, "");
-        }
-      }
-
-      function saveProduct(name, price, imgSrc) {
-        products.push({
-          id: "DM-" + Date.now(),
-          name,
-          price: parseInt(price),
-          img: imgSrc,
+        products.push({ 
+            id: "DM-" + Date.now(), 
+            name: name, 
+            price: parseInt(price), 
+            img: img || "https://via.placeholder.com/200?text=No+Image" 
         });
-        localStorage.setItem("digimart_db", JSON.stringify(products));
+
+        localStorage.setItem('digimart_v4', JSON.stringify(products));
         toggleModal();
         loadData();
-        document.getElementById("pName").value = "";
-        document.getElementById("pPrice").value = "";
-        document.getElementById("pImgFile").value = "";
-      }
+        
+        // Reset form
+        document.getElementById('pName').value = '';
+        document.getElementById('pPrice').value = '';
+        document.getElementById('pImgLink').value = '';
+    }
 
-      // Fungsi untuk memformat angka ke ribuan (12000 -> 12.000)
-      function formatRibuan(angka) {
-        return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-      }
-
-      function loadData() {
-        const grid = document.getElementById("grid");
-        const search = document.getElementById("search").value.toLowerCase();
-        grid.innerHTML = "";
-
-        const filtered = products.filter((p) =>
-          p.name.toLowerCase().includes(search),
-        );
-        document.getElementById("count").innerText =
-          `${filtered.length} Jenis Jajanan`;
+    function loadData() {
+        const grid = document.getElementById('grid');
+        const search = document.getElementById('search').value.toLowerCase();
+        grid.innerHTML = '';
+        
+        const filtered = products.filter(p => p.name.toLowerCase().includes(search));
+        document.getElementById('count').innerText = `${filtered.length} Jenis Jajanan`;
 
         filtered.forEach((p, index) => {
-          const card = document.createElement("div");
-          card.className = "card";
-          // Menampilkan harga dengan format ribuan
-          const hargaTerformat = formatRibuan(p.price);
-
-          card.innerHTML = `
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
                 <div class="no-urut">${index + 1}</div>
-                <img src="${p.img || "https://via.placeholder.com/200?text=No+Image"}" class="product-img">
+                <img src="${p.img}" class="product-img" onerror="this.src='https://via.placeholder.com/200?text=Link+Eror'">
                 <h3 style="margin:15px 0 5px 0; font-size:1.1em;">${p.name}</h3>
-                <div class="price">Rp ${hargaTerformat}</div>
+                <div class="price">Rp ${formatRibuan(p.price)}</div>
                 <div class="qr-box" id="qr-${p.id}"></div>
                 <button onclick="deleteProduct('${p.id}')" style="background:none; border:none; color:#ff7675; cursor:pointer; font-size:12px; margin-top:10px;"><i class="fa-solid fa-trash"></i> Hapus</button>
             `;
-          grid.appendChild(card);
+            grid.appendChild(card);
 
-          new QRCode(document.getElementById(`qr-${p.id}`), {
-            text: p.name,
-            width: 80,
-            height: 80,
-            colorDark: "#2c3e50",
-          });
+            new QRCode(document.getElementById(`qr-${p.id}`), {
+                text: p.name,
+                width: 80, height: 80
+            });
         });
-      }
+    }
 
-      function deleteProduct(id) {
-        if (confirm("Hapus produk ini?")) {
-          products = products.filter((p) => p.id !== id);
-          localStorage.setItem("digimart_db", JSON.stringify(products));
-          loadData();
+    function deleteProduct(id) {
+        if(confirm('Hapus produk ini?')) {
+            products = products.filter(p => p.id !== id);
+            localStorage.setItem('digimart_v4', JSON.stringify(products));
+            loadData();
         }
-      }
+    }
 
-      function startScanner() {
-        const readerDiv = document.getElementById("reader");
-        if (readerDiv.style.display === "block") {
-          stopScanner();
-          return;
+    // FUNGSI SCANNER PERBAIKAN
+    function startScanner() {
+        const readerDiv = document.getElementById('reader');
+        if (readerDiv.style.display === 'block') {
+            stopScanner();
+            return;
         }
-        readerDiv.style.display = "block";
+        
+        readerDiv.style.display = 'block';
         html5QrCode = new Html5Qrcode("reader");
-        html5QrCode
-          .start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: 250 },
-            (text) => {
-              document.getElementById("search").value = text;
-              loadData();
-              stopScanner();
-            },
-          )
-          .catch((err) => console.error(err));
-      }
+        
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-      function stopScanner() {
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            config,
+            (decodedText) => {
+                document.getElementById('search').value = decodedText;
+                loadData();
+                stopScanner();
+            }
+        ).catch(err => {
+            alert("Kamera tidak diizinkan atau tidak ditemukan.");
+            readerDiv.style.display = 'none';
+        });
+    }
+
+    function stopScanner() {
         if (html5QrCode) {
-          html5QrCode.stop().then(() => {
-            document.getElementById("reader").style.display = "none";
-          });
+            html5QrCode.stop().then(() => {
+                document.getElementById('reader').style.display = 'none';
+                html5QrCode = null;
+            });
         }
-      }
+    }
 
-      loadData();
-    </script>
-  </body>
+    loadData();
+</script>
+
+</body>
 </html>
