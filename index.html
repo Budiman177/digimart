@@ -9,6 +9,7 @@
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
       import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+      // KONTROL UTAMA: Menggunakan Firebase Config milikmu
       const firebaseConfig = {
         apiKey: "AIzaSyABw3MPh1FH-IcXxvOzvYivGi6CUkbismY",
         authDomain: "digimart-16d29.firebaseapp.com",
@@ -18,11 +19,25 @@
         appId: "1:212773075342:web:ce6ce4025c265b0814ccdf"
       };
 
+      // Inisialisasi
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       const colRef = collection(db, "products");
 
-      // Sync Real-time
+      // --- LOGIKA MIGRASI DATA ---
+      async function migrateData() {
+          const localData = JSON.parse(localStorage.getItem('digimart_v12')) || [];
+          if (localData.length > 0) {
+              for (const p of localData) {
+                  await addDoc(colRef, p);
+              }
+              localStorage.removeItem('digimart_v12'); 
+              alert("Data lama berhasil disinkronkan ke Cloud!");
+          }
+      }
+      migrateData();
+
+      // --- LOGIKA REAL-TIME SYNC ---
       onSnapshot(colRef, (snapshot) => {
           window.allProducts = [];
           snapshot.docs.forEach(doc => {
@@ -31,7 +46,6 @@
           window.renderGrid(); 
       });
 
-      // Simpan/Update Data
       window.saveToFirebase = async (data) => {
           const editId = document.getElementById('pEditId').value;
           if (editId) {
@@ -39,7 +53,7 @@
           } else {
               await addDoc(colRef, data);
           }
-          resetForm();
+          resetForm(); // Hapus bekas input
           toggleModal();
       };
 
@@ -60,73 +74,116 @@
         
         .search-area { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 0 20px; max-width: 600px; margin: -30px auto 20px; position: relative; z-index: 100; }
         .search-input-wrapper { position: relative; flex: 1; }
+        
+        /* HOVER: Search Bar */
         .search-box { width: 100%; padding: 15px 50px 15px 20px; border-radius: 30px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); outline: none; font-size: 16px; box-sizing: border-box; transition: 0.3s; }
         .search-box:hover, .search-box:focus { box-shadow: 0 10px 30px rgba(39,174,96,0.2); transform: translateY(-2px); }
 
         .btn-search-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: var(--primary); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        
+        /* HOVER: Scanner Search & Button Main Scan */
         .btn-main-scan { background: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: var(--primary); font-size: 1.3em; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .btn-main-scan:hover { transform: scale(1.1) rotate(15deg); color: var(--hover-green); }
+        .btn-main-scan:hover { transform: scale(1.1) rotate(15deg); color: var(--hover-green); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .btn-main-scan.active { background: #eb4d4b; color: white; }
         
-        /* Scanner UI */
-        #reader-container { max-width: 500px; margin: 10px auto; display: none; padding: 15px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; background: rgba(0,0,0,0.85); width: 90%; border-radius: 25px; backdrop-filter: blur(10px); }
+        #reader-container { 
+            max-width: 500px; 
+            margin: 10px auto; 
+            display: none; 
+            padding: 15px; 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            z-index: 2000; 
+            background: rgba(0,0,0,0.85);
+            width: 90%;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
         #reader { width: 100%; border-radius: 20px; overflow: hidden; border: 3px solid var(--white); background: #000; }
-        #reader video { transform: scaleX(1) !important; } /* Fix Mirroring */
-
-        .btn-close-cam { width:100%; background:#ffffff; border:none; color:var(--dark); padding:15px; margin-top:15px; border-radius:18px; cursor:pointer; font-weight:bold; transition: 0.3s; }
-        .btn-close-cam:hover { background: #eb4d4b; color: white; }
-
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; margin-top: 20px; }
-        .card { background: var(--white); border-radius: 30px; padding: 20px; text-align: center; position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.05); transition: 0.4s ease; border: 1px solid transparent; }
-        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 40px rgba(0,0,0,0.12); border-color: var(--primary); }
+        /* Fix Mirroring Scanner */
+        #reader video { transform: scaleX(1) !important; } 
         
-        .product-img-container { background: #fff; border-radius: 20px; height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; }
+        /* HOVER: Tutup Kamera/Close Scanner */
+        .btn-close-cam { width:100%; background:#ffffff; border:none; color:var(--dark); padding:15px; margin-top:15px; border-radius:18px; cursor:pointer; font-weight:bold; transition: 0.3s; }
+        .btn-close-cam:hover { background: #eb4d4b; color: white; transform: scale(1.02); }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        .stats { font-weight: bold; margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 12px; font-size: 1.1em; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
+        
+        /* HOVER: Daftar Barang (Card) */
+        .card { background: var(--white); border-radius: 30px; padding: 20px; text-align: center; position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03); transition: 0.4s ease; }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 40px rgba(0,0,0,0.12); border-color: var(--primary); }
+
+        .no-urut { position: absolute; top: 15px; left: 15px; background: var(--dark); color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center; z-index: 2; font-weight: bold; }
+        .product-img-container { background: var(--white); border-radius: 20px; width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; }
         .product-img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .price { color: var(--primary); font-weight: 800; font-size: 1.4em; }
-
-        /* Action Buttons */
-        .card-actions { display: flex; justify-content: center; gap: 15px; margin-top: 15px; border-top: 1px solid #f0f0f0; padding-top: 15px; }
-        .btn-action { border: none; background: none; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: 0.2s; padding: 8px 12px; border-radius: 12px; }
-        .btn-edit { color: #3498db; }
-        .btn-edit:hover { background: rgba(52, 152, 219, 0.1); transform: scale(1.1); }
-        .btn-delete { color: #eb4d4b; }
-        .btn-delete:hover { background: rgba(235, 77, 75, 0.1); transform: scale(1.1); }
-
+        .price { color: var(--primary); font-weight: 800; font-size: 1.4em; margin: 5px 0; }
+        
+        /* HOVER: Barcode Produk */
         .barcode-wrapper { margin: 15px auto 10px; width: 85%; background: #fcfcfc; padding: 10px; border-radius: 15px; border: 1px solid #f0f0f0; transition: 0.3s; }
-        .barcode-wrapper:hover { transform: scale(1.05); background: #f0f0f0; }
+        .barcode-wrapper:hover { background: #f0f0f0; border-color: #ccc; transform: scale(1.05); }
+
+        .barcode-visual { height: 35px; background: repeating-linear-gradient(90deg, #444 0px, #444 2px, transparent 2px, transparent 4px); margin-bottom: 6px; width: 100%; }
+        .barcode-text { font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #777; font-weight: bold; }
+        
+        /* HOVER Actions */
+        .card-footer { display: flex; gap: 10px; justify-content: center; margin-top: 15px; border-top: 1px solid #f1f1f1; padding-top: 15px; }
+        .btn-edit { background: none; border: none; color: #3498db; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; transition: 0.2s; padding: 5px 10px; border-radius: 10px; }
+        .btn-edit:hover { background: rgba(52, 152, 219, 0.1); transform: scale(1.1); }
+        .btn-delete { background: none; border: none; color: #eb4d4b; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; transition: 0.2s; padding: 5px 10px; border-radius: 10px; }
+        .btn-delete:hover { background: rgba(235, 77, 75, 0.1); transform: scale(1.1); }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: white; padding: 30px; border-radius: 35px; width: 90%; max-width: 420px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; }
-        
         .form-group { margin-bottom: 18px; text-align: left; }
-        .form-group input { width: 100%; padding: 14px; border: 2px solid #f1f1f1; border-radius: 15px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        .form-group input:hover, .form-group input:focus { border-color: var(--primary); }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #555; }
         
+        /* HOVER: Input Nama & Harga */
+        .form-group input { width: 100%; padding: 14px; border: 2px solid #f1f1f1; border-radius: 15px; box-sizing: border-box; font-size: 15px; outline: none; transition: 0.3s; }
+        .form-group input:focus, .form-group input:hover { border-color: var(--primary); background: #fafafa; }
+        
+        /* HOVER: Scanner Input (di dalam modal) */
         .btn-scan-inline { background:var(--dark); color:white; border:none; width:55px; border-radius:15px; cursor:pointer; transition: 0.3s; }
         .btn-scan-inline:hover { background: var(--primary); transform: scale(1.05); }
 
-        .custom-file-upload { display: block; width: 100%; padding: 15px; background: #f9f9f9; border: 2px dashed #dcdde1; border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .custom-file-upload:hover { border-color: var(--primary); color: var(--primary); }
+        /* HOVER: Foto Produk Input */
+        .custom-file-upload { display: block; width: 100%; padding: 15px; background: #f9f9f9; border: 2px dashed #dcdde1; border-radius: 15px; text-align: center; cursor: pointer; color: #7f8c8d; box-sizing: border-box; transition: 0.3s; }
+        .custom-file-upload:hover { border-color: var(--primary); color: var(--primary); background: rgba(39, 174, 96, 0.05); }
 
-        .btn-save { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-save:hover { background: var(--hover-green); transform: translateY(-3px); }
+        #pImageFile { display: none; }
         
-        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 10px 25px rgba(39,174,96,0.4); z-index: 99; transition: 0.4s; }
-        .fab:hover { transform: scale(1.1) rotate(90deg); }
+        /* HOVER: Simpan Produk */
+        .btn-save { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; box-shadow: 0 5px 15px rgba(39,174,96,0.3); }
+        .btn-save:hover { background: var(--hover-green); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(39,174,96,0.4); }
+        
+        /* HOVER: Batal Input */
+        .btn-cancel { width:100%; background:none; border:none; color:#95a5a6; margin-top:15px; cursor:pointer; font-weight:600; transition: 0.2s; padding: 10px; border-radius: 10px; }
+        .btn-cancel:hover { color: #eb4d4b; background: rgba(0,0,0,0.05); }
+
+        /* HOVER: Button Plus (FAB) */
+        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 10px 25px rgba(39,174,96,0.4); z-index: 99; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .fab:hover { transform: scale(1.15) rotate(90deg); background: var(--hover-green); }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>DigiMart</h1>
-    <p>Daftar harga praktis & modern</p>
+    <h1 style="margin:0; font-size: 2.2em; letter-spacing: 1px;">DigiMart</h1>
+    <p style="margin:5px 0 0; opacity:0.9; font-weight: 300;">Daftar harga praktis & modern</p>
 </header>
 
 <div class="search-area">
     <div class="search-input-wrapper">
-        <input type="text" class="search-box" id="search" placeholder="Cari nama atau scan barcode" onkeyup="renderGrid()" autocomplete="off">
-        <button class="btn-search-icon"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <input type="text" class="search-box" id="search" placeholder="Cari nama atau scan barcode" onkeyup="renderGrid()">
+        <button class="btn-search-icon" onclick="renderGrid()"><i class="fa-solid fa-magnifying-glass"></i></button>
     </div>
-    <button class="btn-main-scan" onclick="toggleMainScanner()" id="btnMainScanner"><i class="fa-solid fa-camera" id="scanIcon"></i></button>
+    <button class="btn-main-scan" onclick="toggleMainScanner()" id="btnMainScanner">
+        <i class="fa-solid fa-camera" id="scanIcon"></i>
+    </button>
 </div>
 
 <div id="reader-container">
@@ -139,28 +196,18 @@
     <div class="product-grid" id="grid"></div>
 </div>
 
-<div class="fab" onclick="openTambahModal()"><i class="fa-solid fa-plus"></i></div>
+<div class="fab" onclick="openAddModal()"><i class="fa-solid fa-plus"></i></div>
 
 <div class="modal" id="modalTambah">
     <div class="modal-content">
-        <h2 id="modalTitle" style="text-align:center; color: var(--dark);">Tambah Produk</h2>
+        <h2 id="modalTitle" style="text-align:center; margin:0 0 25px; color: var(--dark);">Tambah Produk</h2>
         <input type="hidden" id="pEditId">
-        <div class="form-group">
-            <label>Barcode Produk</label>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="pBarcode" placeholder="Scan/ketik kode" autocomplete="off">
-                <button onclick="handleScanner('pBarcode')" class="btn-scan-inline"><i class="fa-solid fa-barcode"></i></button>
-            </div>
-        </div>
-        <div class="form-group"><label>Nama Produk</label><input type="text" id="pName" placeholder="Contoh: Kopi Kapal Api" autocomplete="off"></div>
-        <div class="form-group"><label>Harga (Rp)</label><input type="number" id="pPrice" placeholder="Contoh: 2500" autocomplete="off"></div>
-        <div class="form-group">
-            <label>Foto Produk</label>
-            <label for="pImageFile" class="custom-file-upload" id="file-label"><span id="file-name">Unggah Foto</span></label>
-            <input type="file" id="pImageFile" accept="image/*" onchange="updateFileName()">
-        </div>
+        <div class="form-group"><label>Barcode Produk</label><div style="display:flex; gap:10px;"><input type="text" id="pBarcode" placeholder="Scan/ketik kode"><button onclick="handleScanner('pBarcode')" class="btn-scan-inline"><i class="fa-solid fa-barcode"></i></button></div></div>
+        <div class="form-group"><label>Nama Produk</label><input type="text" id="pName" placeholder="Contoh: Kopi Kapal Api"></div>
+        <div class="form-group"><label>Harga (Rp)</label><input type="number" id="pPrice" placeholder="Contoh: 2500"></div>
+        <div class="form-group"><label>Foto Produk</label><label for="pImageFile" class="custom-file-upload" id="file-label"><i class="fa-solid fa-image" style="margin-right:8px;"></i> <span id="file-name">Unggah Foto</span></label><input type="file" id="pImageFile" accept="image/*" onchange="updateFileName()"></div>
         <button class="btn-save" onclick="processUpload()">Simpan Produk</button>
-        <button onclick="toggleModal()" style="width:100%; background:none; border:none; color:#95a5a6; margin-top:15px; cursor:pointer; font-weight:600;">BATAL</button>
+        <button class="btn-cancel" onclick="toggleModal()">BATAL</button>
     </div>
 </div>
 
@@ -178,9 +225,14 @@
         document.getElementById('modalTitle').innerText = "Tambah Produk";
     }
 
-    function openTambahModal() {
+    function openAddModal() {
         resetForm();
         toggleModal();
+    }
+
+    function updateFileName() {
+        const input = document.getElementById('pImageFile');
+        document.getElementById('file-name').innerText = input.files[0] ? input.files[0].name : "Unggah Foto";
     }
 
     function toggleModal() {
@@ -189,7 +241,7 @@
         if (html5QrCode) stopScanner();
     }
 
-    function editProduct(id) {
+    function openEditModal(id) {
         const p = window.allProducts.find(item => item.fireId === id);
         if (p) {
             document.getElementById('pEditId').value = p.fireId;
@@ -197,7 +249,7 @@
             document.getElementById('pName').value = p.name;
             document.getElementById('pPrice').value = p.price;
             document.getElementById('modalTitle').innerText = "Edit Produk";
-            document.getElementById('modalTambah').style.display = 'flex';
+            toggleModal();
         }
     }
 
@@ -209,23 +261,20 @@
         const container = document.getElementById('reader-container');
         if (html5QrCode && html5QrCode.isScanning) await stopScanner();
         container.style.display = 'block';
-        
         html5QrCode = new Html5Qrcode("reader");
         const config = { 
             fps: 30, // Lebih cepat
             qrbox: { width: 250, height: 150 },
-            aspectRatio: 1.0,
-            disableFlip: true // Supaya tidak mirror/terbalik
+            disableFlip: true // Agar tidak terbalik (mirroring)
         };
-
         try {
             await html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
                 document.getElementById(targetId).value = decodedText;
                 stopScanner();
                 if(targetId === 'search') renderGrid();
             });
-            document.getElementById('scanIcon').className = "fa-solid fa-xmark";
-        } catch (err) { alert("Kamera error."); container.style.display = 'none'; }
+            if(targetId === 'search') { document.getElementById('btnMainScanner').classList.add('active'); document.getElementById('scanIcon').className = "fa-solid fa-xmark"; }
+        } catch (err) { alert("Gagal buka kamera."); container.style.display = 'none'; }
     }
 
     async function stopScanner() {
@@ -233,21 +282,28 @@
             try { if (html5QrCode.isScanning) await html5QrCode.stop(); } finally {
                 html5QrCode = null;
                 document.getElementById('reader-container').style.display = 'none';
+                document.getElementById('reader').innerHTML = "";
+                document.getElementById('btnMainScanner').classList.remove('active');
                 document.getElementById('scanIcon').className = "fa-solid fa-camera";
             }
         }
     }
 
     function processUpload() {
+        const barcode = document.getElementById('pBarcode').value;
         const name = document.getElementById('pName').value;
         const price = document.getElementById('pPrice').value;
-        const barcode = document.getElementById('pBarcode').value;
         const file = document.getElementById('pImageFile').files[0];
         const editId = document.getElementById('pEditId').value;
         
         if (!name || !price) return alert("Isi Nama & Harga!");
 
-        const existingImg = editId ? window.allProducts.find(p => p.fireId === editId).img : "https://via.placeholder.com/500/ffffff/2c3e50?text=No+Photo";
+        // Jika mode edit dan tidak upload foto baru, pakai foto lama
+        const oldProduct = editId ? window.allProducts.find(p => p.fireId === editId) : null;
+        
+        const save = (imgData) => {
+            window.saveToFirebase({ barcode, name, price: parseInt(price), img: imgData });
+        };
 
         if (file) {
             const reader = new FileReader();
@@ -261,13 +317,13 @@
                     const ratio = Math.min(500 / img.width, 500 / img.height);
                     const nw = img.width * ratio; const nh = img.height * ratio;
                     ctx.drawImage(img, (500 - nw) / 2, (500 - nh) / 2, nw, nh);
-                    window.saveToFirebase({ barcode, name, price: parseInt(price), img: canvas.toDataURL('image/jpeg', 0.8) });
+                    save(canvas.toDataURL('image/jpeg', 0.8));
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         } else {
-            window.saveToFirebase({ barcode, name, price: parseInt(price), img: existingImg });
+            save(oldProduct ? oldProduct.img : "https://via.placeholder.com/500/ffffff/2c3e50?text=No+Photo");
         }
     }
 
@@ -277,28 +333,17 @@
         grid.innerHTML = '';
         const filtered = window.allProducts.filter(p => p.name.toLowerCase().includes(search) || (p.barcode && p.barcode.includes(search)));
         document.getElementById('count').innerText = `${filtered.length} Jenis Barang (Cloud)`;
-        
         filtered.forEach((p, index) => {
             const card = document.createElement('div'); card.className = 'card';
-            card.innerHTML = `
-                <div class="product-img-container"><img src="${p.img}" class="product-img"></div>
-                <h3>${p.name}</h3>
-                <div class="price">Rp ${new Intl.NumberFormat('id-ID').format(p.price)}</div>
-                <div class="barcode-wrapper">
-                    <div style="height:30px; background: repeating-linear-gradient(90deg, #444 0, #444 2px, transparent 2px, transparent 4px);"></div>
-                    <div style="font-size:10px; font-weight:bold; margin-top:5px;">${p.barcode || 'NO BARCODE'}</div>
-                </div>
-                <div class="card-actions">
-                    <button class="btn-action btn-edit" onclick="editProduct('${p.fireId}')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-                    <button class="btn-action btn-delete" onclick="window.deleteFromFirebase('${p.fireId}')"><i class="fa-solid fa-trash"></i> Hapus</button>
+            card.innerHTML = `<div class="no-urut">${index + 1}</div><div class="product-img-container"><img src="${p.img}" class="product-img"></div>
+                <h3>${p.name}</h3><div class="price">Rp ${new Intl.NumberFormat('id-ID').format(p.price)}</div>
+                <div class="barcode-wrapper"><div class="barcode-visual"></div><div class="barcode-text">${p.barcode || '---'}</div></div>
+                <div class="card-footer">
+                    <button class="btn-edit" onclick="openEditModal('${p.fireId}')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                    <button class="btn-delete" onclick="window.deleteFromFirebase('${p.fireId}')"><i class="fa-solid fa-trash-can"></i> Hapus</button>
                 </div>`;
             grid.appendChild(card);
         });
-    }
-
-    function updateFileName() {
-        const input = document.getElementById('pImageFile');
-        document.getElementById('file-name').innerText = input.files[0] ? input.files[0].name : "Unggah Foto";
     }
 </script>
 </body>
