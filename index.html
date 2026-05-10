@@ -61,17 +61,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        :root { --primary: #27ae60; --dark: #2c3e50; --light: #f4f7f6; --white: #ffffff; }
+        :root { --primary: #27ae60; --dark: #2c3e50; --light: #f4f7f6; --white: #ffffff; --hover-green: #219150; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); margin: 0; padding-bottom: 100px; color: var(--dark); }
         header { background: var(--primary); color: white; padding: 40px 20px 60px; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        
         .search-area { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 0 20px; max-width: 600px; margin: -30px auto 20px; position: relative; z-index: 100; }
         .search-input-wrapper { position: relative; flex: 1; }
-        .search-box { width: 100%; padding: 15px 50px 15px 20px; border-radius: 30px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); outline: none; font-size: 16px; box-sizing: border-box; }
+        
+        /* HOVER: Search Bar */
+        .search-box { width: 100%; padding: 15px 50px 15px 20px; border-radius: 30px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); outline: none; font-size: 16px; box-sizing: border-box; transition: 0.3s; }
+        .search-box:hover, .search-box:focus { box-shadow: 0 10px 30px rgba(39,174,96,0.2); transform: translateY(-2px); }
+
         .btn-search-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: var(--primary); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .btn-main-scan { background: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: var(--primary); font-size: 1.3em; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        
+        /* HOVER: Scanner Search & Button Main Scan */
+        .btn-main-scan { background: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: var(--primary); font-size: 1.3em; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .btn-main-scan:hover { transform: scale(1.1) rotate(15deg); color: var(--hover-green); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
         .btn-main-scan.active { background: #eb4d4b; color: white; }
         
-        /* Perbaikan: Z-index Kontainer Kamera harus lebih tinggi dari Modal */
         #reader-container { 
             max-width: 500px; 
             margin: 10px auto; 
@@ -82,33 +89,72 @@
             left: 50%; 
             transform: translate(-50%, -50%); 
             z-index: 2000; 
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             width: 90%;
             border-radius: 25px;
+            backdrop-filter: blur(10px);
         }
         
         #reader { width: 100%; border-radius: 20px; overflow: hidden; border: 3px solid var(--white); background: #000; }
+        
+        /* HOVER: Tutup Kamera/Close Scanner */
+        .btn-close-cam { width:100%; background:#ffffff; border:none; color:var(--dark); padding:15px; margin-top:15px; border-radius:18px; cursor:pointer; font-weight:bold; transition: 0.3s; }
+        .btn-close-cam:hover { background: #eb4d4b; color: white; transform: scale(1.02); }
+
         .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
         .stats { font-weight: bold; margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 12px; font-size: 1.1em; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
-        .card { background: var(--white); border-radius: 30px; padding: 20px; text-align: center; position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03); transition: 0.3s; }
+        
+        /* HOVER: Daftar Barang (Card) */
+        .card { background: var(--white); border-radius: 30px; padding: 20px; text-align: center; position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03); transition: 0.4s ease; }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 40px rgba(0,0,0,0.12); border-color: var(--primary); }
+
         .no-urut { position: absolute; top: 15px; left: 15px; background: var(--dark); color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center; z-index: 2; font-weight: bold; }
         .product-img-container { background: var(--white); border-radius: 20px; width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; }
         .product-img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .price { color: var(--primary); font-weight: 800; font-size: 1.4em; margin: 5px 0; }
-        .barcode-wrapper { margin: 15px auto 10px; width: 85%; background: #fcfcfc; padding: 10px; border-radius: 15px; border: 1px solid #f0f0f0; }
+        
+        /* HOVER: Barcode Produk */
+        .barcode-wrapper { margin: 15px auto 10px; width: 85%; background: #fcfcfc; padding: 10px; border-radius: 15px; border: 1px solid #f0f0f0; transition: 0.3s; }
+        .barcode-wrapper:hover { background: #f0f0f0; border-color: #ccc; transform: scale(1.05); }
+
         .barcode-visual { height: 35px; background: repeating-linear-gradient(90deg, #444 0px, #444 2px, transparent 2px, transparent 4px); margin-bottom: 6px; width: 100%; }
         .barcode-text { font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #777; font-weight: bold; }
-        .btn-delete { background: none; border: none; color: #eb4d4b; cursor: pointer; font-size: 13px; margin-top: 15px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+        
+        /* HOVER: Hapus Barang */
+        .btn-delete { background: none; border: none; color: #eb4d4b; cursor: pointer; font-size: 13px; margin-top: 15px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; transition: 0.2s; padding: 5px 10px; border-radius: 10px; }
+        .btn-delete:hover { background: rgba(235, 77, 75, 0.1); transform: scale(1.1); }
+
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: white; padding: 30px; border-radius: 35px; width: 90%; max-width: 420px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; }
         .form-group { margin-bottom: 18px; text-align: left; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #555; }
-        .form-group input { width: 100%; padding: 14px; border: 2px solid #f1f1f1; border-radius: 15px; box-sizing: border-box; font-size: 15px; outline: none; }
-        .custom-file-upload { display: block; width: 100%; padding: 15px; background: #f9f9f9; border: 2px dashed #dcdde1; border-radius: 15px; text-align: center; cursor: pointer; color: #7f8c8d; box-sizing: border-box; }
+        
+        /* HOVER: Input Nama & Harga */
+        .form-group input { width: 100%; padding: 14px; border: 2px solid #f1f1f1; border-radius: 15px; box-sizing: border-box; font-size: 15px; outline: none; transition: 0.3s; }
+        .form-group input:focus, .form-group input:hover { border-color: var(--primary); background: #fafafa; }
+        
+        /* HOVER: Scanner Input (di dalam modal) */
+        .btn-scan-inline { background:var(--dark); color:white; border:none; width:55px; border-radius:15px; cursor:pointer; transition: 0.3s; }
+        .btn-scan-inline:hover { background: var(--primary); transform: scale(1.05); }
+
+        /* HOVER: Foto Produk Input */
+        .custom-file-upload { display: block; width: 100%; padding: 15px; background: #f9f9f9; border: 2px dashed #dcdde1; border-radius: 15px; text-align: center; cursor: pointer; color: #7f8c8d; box-sizing: border-box; transition: 0.3s; }
+        .custom-file-upload:hover { border-color: var(--primary); color: var(--primary); background: rgba(39, 174, 96, 0.05); }
+
         #pImageFile { display: none; }
-        .btn-save { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 10px 25px rgba(39,174,96,0.4); z-index: 99; transition: 0.3s; }
+        
+        /* HOVER: Simpan Produk */
+        .btn-save { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 18px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; box-shadow: 0 5px 15px rgba(39,174,96,0.3); }
+        .btn-save:hover { background: var(--hover-green); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(39,174,96,0.4); }
+        
+        /* HOVER: Batal Input */
+        .btn-cancel { width:100%; background:none; border:none; color:#95a5a6; margin-top:15px; cursor:pointer; font-weight:600; transition: 0.2s; padding: 10px; border-radius: 10px; }
+        .btn-cancel:hover { color: #eb4d4b; background: rgba(0,0,0,0.05); }
+
+        /* HOVER: Button Plus (FAB) */
+        .fab { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 10px 25px rgba(39,174,96,0.4); z-index: 99; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .fab:hover { transform: scale(1.15) rotate(90deg); background: var(--hover-green); }
     </style>
 </head>
 <body>
@@ -130,7 +176,7 @@
 
 <div id="reader-container">
     <div id="reader"></div>
-    <button onclick="stopScanner()" style="width:100%; background:#ffffff; border:none; color:var(--dark); padding:15px; margin-top:15px; border-radius:18px; cursor:pointer; font-weight:bold;">TUTUP KAMERA</button>
+    <button onclick="stopScanner()" class="btn-close-cam">TUTUP KAMERA</button>
 </div>
 
 <div class="container">
@@ -143,12 +189,12 @@
 <div class="modal" id="modalTambah">
     <div class="modal-content">
         <h2 style="text-align:center; margin:0 0 25px; color: var(--dark);">Tambah Produk</h2>
-        <div class="form-group"><label>Barcode Produk</label><div style="display:flex; gap:10px;"><input type="text" id="pBarcode" placeholder="Scan/ketik kode"><button onclick="handleScanner('pBarcode')" style="background:var(--dark); color:white; border:none; width:55px; border-radius:15px; cursor:pointer;"><i class="fa-solid fa-barcode"></i></button></div></div>
+        <div class="form-group"><label>Barcode Produk</label><div style="display:flex; gap:10px;"><input type="text" id="pBarcode" placeholder="Scan/ketik kode"><button onclick="handleScanner('pBarcode')" class="btn-scan-inline"><i class="fa-solid fa-barcode"></i></button></div></div>
         <div class="form-group"><label>Nama Produk</label><input type="text" id="pName" placeholder="Contoh: Kopi Kapal Api"></div>
         <div class="form-group"><label>Harga (Rp)</label><input type="number" id="pPrice" placeholder="Contoh: 2500"></div>
         <div class="form-group"><label>Foto Produk</label><label for="pImageFile" class="custom-file-upload" id="file-label"><i class="fa-solid fa-image" style="margin-right:8px;"></i> <span id="file-name">Unggah Foto</span></label><input type="file" id="pImageFile" accept="image/*" onchange="updateFileName()"></div>
         <button class="btn-save" onclick="processUpload()">Simpan Produk</button>
-        <button style="width:100%; background:none; border:none; color:#95a5a6; margin-top:15px; cursor:pointer; font-weight:600;" onclick="toggleModal()">BATAL</button>
+        <button class="btn-cancel" onclick="toggleModal()">BATAL</button>
     </div>
 </div>
 
@@ -175,7 +221,6 @@
         const container = document.getElementById('reader-container');
         if (html5QrCode && html5QrCode.isScanning) await stopScanner();
         container.style.display = 'block';
-        // container.scrollIntoView removed karena sekarang posisinya melayang (fixed)
         html5QrCode = new Html5Qrcode("reader");
         try {
             await html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: { width: 280, height: 150 } }, (decodedText) => {
