@@ -24,11 +24,10 @@
       const db = getFirestore(app);
       const colRef = collection(db, "products");
 
-      // --- LOGIKA MIGRASI DATA (Agar barang di HP tidak hilang) ---
+      // --- LOGIKA MIGRASI DATA ---
       async function migrateData() {
           const localData = JSON.parse(localStorage.getItem('digimart_v12')) || [];
           if (localData.length > 0) {
-              console.log("Memindahkan data lokal ke Cloud...");
               for (const p of localData) {
                   await addDoc(colRef, p);
               }
@@ -47,7 +46,6 @@
           window.renderGrid(); 
       });
 
-      // Ekspos fungsi ke global
       window.saveToFirebase = async (data) => {
           await addDoc(colRef, data);
       };
@@ -72,8 +70,24 @@
         .btn-search-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: var(--primary); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .btn-main-scan { background: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: var(--primary); font-size: 1.3em; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-main-scan.active { background: #eb4d4b; color: white; }
-        #reader-container { max-width: 500px; margin: 10px auto; display: none; padding: 0 15px; position: relative; z-index: 101; }
-        #reader { width: 100%; border-radius: 25px; overflow: hidden; border: 5px solid var(--white); box-shadow: 0 10px 30px rgba(0,0,0,0.2); background: #000; }
+        
+        /* Perbaikan: Z-index Kontainer Kamera harus lebih tinggi dari Modal */
+        #reader-container { 
+            max-width: 500px; 
+            margin: 10px auto; 
+            display: none; 
+            padding: 15px; 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            z-index: 2000; 
+            background: rgba(0,0,0,0.8);
+            width: 90%;
+            border-radius: 25px;
+        }
+        
+        #reader { width: 100%; border-radius: 20px; overflow: hidden; border: 3px solid var(--white); background: #000; }
         .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
         .stats { font-weight: bold; margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 12px; font-size: 1.1em; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
@@ -116,11 +130,11 @@
 
 <div id="reader-container">
     <div id="reader"></div>
-    <button onclick="stopScanner()" style="width:100%; background:#2c3e50; border:none; color:white; padding:15px; margin-top:15px; border-radius:18px; cursor:pointer; font-weight:bold;">TUTUP KAMERA</button>
+    <button onclick="stopScanner()" style="width:100%; background:#ffffff; border:none; color:var(--dark); padding:15px; margin-top:15px; border-radius:18px; cursor:pointer; font-weight:bold;">TUTUP KAMERA</button>
 </div>
 
 <div class="container">
-    <div class="stats" id="count">Menuat data Cloud...</div>
+    <div class="stats" id="count">Memuat data (Cloud)...</div>
     <div class="product-grid" id="grid"></div>
 </div>
 
@@ -161,7 +175,7 @@
         const container = document.getElementById('reader-container');
         if (html5QrCode && html5QrCode.isScanning) await stopScanner();
         container.style.display = 'block';
-        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // container.scrollIntoView removed karena sekarang posisinya melayang (fixed)
         html5QrCode = new Html5Qrcode("reader");
         try {
             await html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: { width: 280, height: 150 } }, (decodedText) => {
@@ -220,7 +234,7 @@
         const search = document.getElementById('search').value.toLowerCase();
         grid.innerHTML = '';
         const filtered = window.allProducts.filter(p => p.name.toLowerCase().includes(search) || (p.barcode && p.barcode.includes(search)));
-        document.getElementById('count').innerText = `${filtered.length} Jenis Jajanan (Cloud)`;
+        document.getElementById('count').innerText = `${filtered.length} Jenis Barang (Cloud)`;
         filtered.forEach((p, index) => {
             const card = document.createElement('div'); card.className = 'card';
             card.innerHTML = `<div class="no-urut">${index + 1}</div><div class="product-img-container"><img src="${p.img}" class="product-img"></div>
